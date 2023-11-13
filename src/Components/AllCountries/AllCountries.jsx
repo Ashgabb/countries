@@ -1,6 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import { apiURL } from '../Utility/api';
 
+import SearchInput from '../Search/SearchInput';
+import FilterCountry from '../FilterCountry/FilterCountry';
+
+import { Link } from 'react-router-dom';
+
 const AllCountries = () => {
 
     const [countries, setCountries] = useState([])
@@ -27,13 +32,50 @@ const AllCountries = () => {
         }
     };
 
+    const getCountryByName = async(countryName) => {
+       try {
+        const res = await fetch(`${apiURL}/name/${countryName}`);
+
+        if (!res.ok) throw new Error('Country not found!');
+            
+        const data = await res.json()
+        setCountries(data);
+        setIsLoading(false);
+       } catch (error) {
+        setIsLoading(false);
+        setError(error.message);
+        
+       }
+    };
+    const getCountryByRegion = async(regionName) => {
+       try {
+        const res = await fetch(`${apiURL}/region/${regionName}`);
+
+        if (!res.ok) throw new Error('Region not available!');
+            
+        const data = await res.json()
+        setCountries(data);
+        setIsLoading(false);
+       } catch (error) {
+        setIsLoading(false);
+        setError(error.message);
+        
+       }
+    };
+
     useEffect(() => {
         getAllCountries();
     }, []);
 
   return <div className='all_country_wrapper'>
       <div className="country_top">
-        
+        <div className="search">
+            <SearchInput onSearch={getCountryByName}/>
+        </div>
+
+        <div className="filter">
+            <FilterCountry onSelect={getCountryByRegion}/>
+        </div>
       </div>
 
       <div className="country_bottom">
@@ -42,7 +84,8 @@ const AllCountries = () => {
 
         {
             countries?.map(country => (
-                <div className="country_card">
+                <Link to={`/country/${country.name.common}`}>
+                    <div className="country_card">
                     <div className="country_img">
                         <img src={country.flags.png} alt="flag of a country" />
                     </div>
@@ -54,6 +97,7 @@ const AllCountries = () => {
                         <h6> Capital: {country.capital}</h6>
                     </div>
                 </div>
+                </Link>
             ))
         }
       </div>
